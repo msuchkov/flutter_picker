@@ -57,6 +57,8 @@ class Picker {
   final Widget? confirm;
   final String? cancelText;
   final String? confirmText;
+  final FocusNode? confirmFocusNode;
+  final FocusNode? cancelFocusNode;
 
   final double height;
 
@@ -150,6 +152,8 @@ class Picker {
       this.onSelect,
       this.onConfirmBefore,
       this.onConfirm,
+      this.confirmFocusNode,
+      this.cancelFocusNode,
       this.printDebug = false}) {
     this.selecteds = selecteds == null ? <int>[] : selecteds;
   }
@@ -231,7 +235,7 @@ class Picker {
           final actions = <Widget>[];
           final theme = Theme.of(context);
           final _cancel = PickerWidgetState._buildButton(
-              context, cancelText, cancel, cancelTextStyle, true, theme, () {
+              context, cancelText, cancel, cancelTextStyle, true, cancelFocusNode,theme, () {
             Navigator.pop<List<int>>(context, null);
             if (onCancel != null) {
               onCancel!();
@@ -241,7 +245,7 @@ class Picker {
             actions.add(_cancel);
           }
           final _confirm = PickerWidgetState._buildButton(
-              context, confirmText, confirm, confirmTextStyle, false, theme,
+              context, confirmText, confirm, confirmTextStyle, false, confirmFocusNode, theme,
               () async {
             if (onConfirmBefore != null &&
                 !(await onConfirmBefore!(this, selecteds))) {
@@ -470,7 +474,7 @@ class PickerWidgetState<T> extends State<_PickerWidget> {
     List<Widget> items = [];
 
     final _cancel = _buildButton(context, picker.cancelText, picker.cancel,
-        picker.cancelTextStyle, true, theme, () => picker.doCancel(context));
+        picker.cancelTextStyle, true, picker.cancelFocusNode, theme, () => picker.doCancel(context));
     if (_cancel != null) {
       items.add(_cancel);
     }
@@ -490,7 +494,7 @@ class PickerWidgetState<T> extends State<_PickerWidget> {
     ));
 
     final _confirm = _buildButton(context, picker.confirmText, picker.confirm,
-        picker.confirmTextStyle, false, theme, () => picker.doConfirm(context));
+        picker.confirmTextStyle, false, picker.confirmFocusNode, theme, () => picker.doConfirm(context));
     if (_confirm != null) {
       items.add(_confirm);
     }
@@ -505,6 +509,7 @@ class PickerWidgetState<T> extends State<_PickerWidget> {
       Widget? widget,
       TextStyle? textStyle,
       bool isCancel,
+      FocusNode? focusNode,
       ThemeData? theme,
       VoidCallback? onPressed) {
     if (widget == null) {
@@ -516,6 +521,7 @@ class PickerWidgetState<T> extends State<_PickerWidget> {
         return null;
       }
       return TextButton(
+          focusNode: focusNode,
           style: Picker._getButtonStyle(ButtonTheme.of(context), isCancel),
           onPressed: onPressed,
           child: Text(_txt,
